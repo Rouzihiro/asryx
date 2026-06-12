@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-
   pull_request:
 
 concurrency:
@@ -15,30 +14,42 @@ permissions:
   contents: read
 
 jobs:
+  changes:
+    permissions:
+      contents: read
+      pull-requests: read
+    uses: ./.github/workflows/on-workflow-call-check-changes.yml
+
   shellcheck:
+    needs: changes
+    if: needs.changes.outputs.non_docs == 'true'
     uses: ./.github/workflows/on-workflow-call-shell-check.yml
 
   format:
+    needs: changes
+    if: needs.changes.outputs.non_docs == 'true'
     uses: ./.github/workflows/on-workflow-call-format.yml
 
-  lint:
-    needs: [shellcheck, format]
-    uses: ./.github/workflows/on-workflow-call-lint.yml
-
   build:
-    needs: [lint]
+    needs:
+      - shellcheck
+      - format
     uses: ./.github/workflows/on-workflow-call-build.yml
 
+  lint:
+    needs: build
+    uses: ./.github/workflows/on-workflow-call-lint.yml
+
   test:
-    needs:
-      - build
+    needs: build
     uses: ./.github/workflows/on-workflow-call-test.yml
 
   sanitizers:
-    needs:
-      - build
+    needs: build
     uses: ./.github/workflows/on-workflow-call-sanitizers.yml
 
   install-uninstall:
-    needs: [build, sanitizers]
+    needs:
+      - test
+      - sanitizers
     uses: ./.github/workflows/on-workflow-call-distros.yml
