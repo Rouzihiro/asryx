@@ -201,6 +201,9 @@ cd asryx && bash ./scripts/install
 
 The installer validates the user environment, checks required tools, clones the pinned native inference source, builds the binary locally, installs the executable, writes the version pin, writes the default config, installs the VAD model, installs the default transcription model, selects it, and prints a PATH note when `~/.local/bin` is unavailable from the current shell.
 
+> [!NOTE]
+> `main` is branch protected and force pushes are disabled. Anything merged into `main` builds and installs. if you want a versioned snapshot instead, see [releases](https://github.com/rccyx/asryx/releases).
+
 Installed paths:
 
 ```text
@@ -313,7 +316,7 @@ System Settings > Shortcuts > Custom Shortcuts
 command: asryx
 ```
 
-> [!TIP]
+> [!WARNING]
 > A clipboard manager is highly recommended for long recordings. In case you copy something else by mistake after the transcription is emitted.
 
 ## CLI
