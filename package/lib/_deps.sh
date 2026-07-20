@@ -65,7 +65,7 @@ _asryx_fail_if_missing_tools() {
     printf '  - %s\n' "${tool}" >&2
   done
 
-  printf '\ninstall them with your system package manager and rerun ./package/install\n' >&2
+  printf '\ninstall them with your system package manager and rerun ./package//install\n' >&2
   exit 1
 }
 
@@ -84,4 +84,8 @@ _asryx_require_runtime_dependencies() {
   _asryx_require_command notify-send
 
   _asryx_fail_if_missing_tools
+}
+
+_asryx_require_dev_dependencies() {
+  _asryx_require_runtime_dependencies
 }
