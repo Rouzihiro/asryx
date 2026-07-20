@@ -53,7 +53,7 @@ int _thread_count()
 {
   const auto detected = std::thread::hardware_concurrency();
   if (detected == 0) {
-    return 4;
+    return 4; // TODO: this ain't it chief!
   }
 
   return static_cast<int>(std::min(4U, detected));
@@ -72,6 +72,17 @@ const char* _language(whisper_context* ctx, const std::string& language)
   return language.c_str();
 }
 
+// cppcheck-suppress constParameterCallback
+bool _abort_requested(void* user_data)
+{
+  if (user_data == nullptr) {
+    return false;
+  }
+
+  const auto* marker_path = static_cast<const std::string*>(user_data);
+  return !marker_path->empty() && std::filesystem::exists(*marker_path);
+}
+
 WhisperContext _load_context(const std::string& model_path)
 {
   whisper_context_params context_params = whisper_context_default_params();
@@ -83,7 +94,7 @@ WhisperContext _load_context(const std::string& model_path)
   return ctx;
 }
 
-whisper_full_params _params(whisper_context* ctx, const TranscriptionRequest& request)
+whisper_full_params _params(whisper_context* ctx, TranscriptionRequest& request)
 {
   whisper_full_params params = whisper_full_default_params(WHISPER_SAMPLING_GREEDY);
 
@@ -104,6 +115,8 @@ whisper_full_params _params(whisper_context* ctx, const TranscriptionRequest& re
   params.vad = true;
   params.vad_model_path = request.vad_model_path.c_str();
   params.vad_params = whisper_vad_default_params();
+  params.abort_callback = _abort_requested;
+  params.abort_callback_user_data = &request.cancel_marker_path;
 
   return params;
 }
@@ -131,10 +144,16 @@ std::string run(const TranscriptionRequest& request)
 
   const auto samples = audio::read_pcm16_wav(request.wav_path);
   const auto ctx = _load_context(request.model_path);
-  const auto params = _params(ctx.get(), request);
+  auto transcription_request = request;
+  const auto params = _params(ctx.get(), transcription_request);
 
   if (whisper_full(ctx.get(), params, samples.data(), static_cast<int>(samples.size())) != 0) {
-    throw std::runtime_error("whisper transcription failed");
+    if (!request.cancel_marker_path.empty() && std::filesystem::exists(request.cancel_marker_path))
+    {
+      throw TranscriptionCancelled();
+    }
+
+    throw std::runtime_error("transcription failed");
   }
 
   return _read_output(ctx.get());
