@@ -2,9 +2,7 @@
 
 #include "config/config.hpp"
 #include "constants/constants.hpp"
-#include "engine/engine.hpp"
 #include "platform/fs.hpp"
-#include "platform/process.hpp"
 #include "tests/model_store.hpp"
 
 #include <filesystem>
@@ -22,56 +20,6 @@ namespace {
 void _delete_if_exists(const std::filesystem::path& path)
 {
   platform::safe_delete_file(path);
-}
-
-pid_t _fake_start(const std::string& wav_path, const std::string& err_path)
-{
-  auto& s = state();
-  ++s.start_calls;
-  write_text(wav_path, "fake wav");
-  write_text(err_path, "");
-  s.last_started_pid = getpid();
-  return s.last_started_pid;
-}
-
-bool _fake_stop(pid_t pid)
-{
-  ++state().stop_calls;
-  return state().stop_result && pid == getpid();
-}
-
-std::string _fake_transcribe(const engine::TranscriptionRequest& request)
-{
-  auto& s = state();
-  ++s.transcribe_calls;
-  s.last_cancel_marker_path = request.cancel_marker_path;
-
-  std::ifstream state_file(runtime_file(std::string(constants::runtime::state_file)));
-  std::string runtime_state;
-  state_file >> runtime_state;
-  s.saw_transcribing_state = runtime_state == constants::runtime::transcribing_state;
-
-  if (s.cancel_during_transcribe) {
-    write_text(request.cancel_marker_path, "cancel\n");
-  }
-
-  return s.transcript;
-}
-
-bool _fake_clipboard(const std::string& text)
-{
-  auto& s = state();
-  ++s.clipboard_calls;
-  s.copied_text = text;
-  return s.clipboard_result;
-}
-
-bool _fake_notify(const std::string& message)
-{
-  auto& s = state();
-  ++s.notification_calls;
-  s.last_notification = message;
-  return true;
 }
 
 } // namespace
@@ -123,7 +71,6 @@ pid_t dead_pid()
 
 void clean_runtime()
 {
-  engine::testing::reset_hooks();
   platform::safe_delete_directory(lock_dir());
   platform::safe_delete_file(runtime_file(std::string(constants::runtime::recorder_pid_file)));
   platform::safe_delete_file(runtime_file(std::string(constants::runtime::recorder_wav_file)));
@@ -153,15 +100,6 @@ std::string read_text(const std::filesystem::path& path)
     output += '\n';
   }
   return output;
-}
-
-void install_default_hooks()
-{
-  engine::testing::set_start_recording_hook(_fake_start);
-  engine::testing::set_stop_recording_hook(_fake_stop);
-  engine::testing::set_transcribe_hook(_fake_transcribe);
-  engine::testing::set_copy_to_clipboard_hook(_fake_clipboard);
-  engine::testing::set_notification_hook(_fake_notify);
 }
 
 void write_fake_model()

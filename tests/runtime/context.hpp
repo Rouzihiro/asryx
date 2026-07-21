@@ -42,7 +42,6 @@ pid_t dead_pid();
 void clean_runtime();
 void write_text(const std::filesystem::path& path, const std::string& text);
 std::string read_text(const std::filesystem::path& path);
-void install_default_hooks();
 void write_fake_model();
 void reset_config(const std::string& pipe_to = "");
 void write_pid_file(pid_t pid);
