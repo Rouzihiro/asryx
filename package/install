@@ -107,13 +107,8 @@ install_libassert() {
 }
 
 build_asryx() {
-  local build_tests="OFF"
-  if [[ "${install_dev}" -eq 1 ]]; then
-    build_tests="ON"
-  fi
-
   _asryx_log "configuring asryx"
-  cmake --fresh --preset release -S "${repo_dir}" -DASRYX_BUILD_TESTS="${build_tests}"
+  cmake --fresh --preset release -S "${repo_dir}"
 
   _asryx_log "building asryx"
   cmake --build "${repo_dir}/build/release" --target asryx
