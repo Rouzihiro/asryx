@@ -1,0 +1,43 @@
+name: project install
+
+description: cache and install project artifacts
+
+inputs:
+  dev:
+    description: install in dev mode
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+    - name: cache install artifacts
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.local/opt/whisper.cpp
+          ${{ inputs.dev == 'true' && '~/.local/opt/libassert' || '' }}
+          ~/.local/share/asryx
+          ~/.cache/ccache
+        key: ${{ runner.os }}-install-${{ hashFiles('package/install') }}-${{ github.job }}-${{ github.run_id }}-${{ github.run_attempt }}
+        restore-keys: |
+          ${{ runner.os }}-install-${{ hashFiles('package/install') }}-${{ github.job }}-
+          ${{ runner.os }}-install-${{ hashFiles('package/install') }}-
+          ${{ runner.os }}-install-
+
+    - name: install
+      shell: bash
+      env:
+        CMAKE_C_COMPILER_LAUNCHER: ccache
+        CMAKE_CXX_COMPILER_LAUNCHER: ccache
+        CCACHE_DIR: /home/runner/.cache/ccache
+        CCACHE_COMPRESS: "true"
+        CCACHE_MAXSIZE: 1G
+      run: |
+        set -euo pipefail
+
+        if [[ "${{ inputs.dev }}" == "true" ]]; then
+          bash ./package/install --dev
+          exit 0
+        fi
+
+        bash ./package/install

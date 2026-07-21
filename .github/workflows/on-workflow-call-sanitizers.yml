@@ -11,33 +11,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: base runner
         uses: ./.github/actions/base-runner
 
-      - name: cache install artifacts
-        uses: actions/cache@v4
+      - name: project install
+        uses: ./.github/actions/project-install
         with:
-          path: |
-            ~/.local/opt/whisper.cpp
-            ~/.local/opt/libassert
-            ~/.local/share/asryx
-            ~/.cache/ccache
-          key: ${{ runner.os }}-install-${{ hashFiles('package/install') }}-${{ github.job }}-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: |
-            ${{ runner.os }}-install-${{ hashFiles('package/install') }}-${{ github.job }}-
-            ${{ runner.os }}-install-${{ hashFiles('package/install') }}-
-            ${{ runner.os }}-install-
-
-      - name: install
-        env:
-          CMAKE_C_COMPILER_LAUNCHER: ccache
-          CMAKE_CXX_COMPILER_LAUNCHER: ccache
-          CCACHE_DIR: /home/runner/.cache/ccache
-          CCACHE_COMPRESS: "true"
-          CCACHE_MAXSIZE: 1G
-        run: bash ./package/install --dev
+          dev: "true"
 
       - name: runtime safety
         run: just s
