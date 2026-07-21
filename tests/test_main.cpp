@@ -1,15 +1,10 @@
+#include "tests/tests.hpp"
+
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <string>
-
-void run_test_config();
-void run_test_app();
-void run_test_model();
-void run_test_lock();
-void run_test_process();
-void run_test_runtime();
 
 int main()
 {
@@ -71,7 +66,6 @@ int main()
 
     std::cout << "All unit tests passed successfully!\n";
 
-    // Clean up
     if (std::filesystem::exists(home_path)) {
       std::filesystem::remove_all(home_path);
     }

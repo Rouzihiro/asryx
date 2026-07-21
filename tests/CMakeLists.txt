@@ -1,3 +1,7 @@
+list(APPEND CMAKE_PREFIX_PATH "$ENV{HOME}/.local/opt/libassert/install")
+
+find_package(libassert CONFIG REQUIRED)
+
 file(GLOB_RECURSE TEST_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 
 file(GLOB_RECURSE ASRYX_CORE_SOURCES "${PROJECT_SOURCE_DIR}/src/*.cpp")
@@ -9,7 +13,7 @@ target_include_directories(
   PRIVATE "${PROJECT_SOURCE_DIR}/src" "${CMAKE_CURRENT_SOURCE_DIR}" "${PROJECT_SOURCE_DIR}"
 )
 target_compile_definitions(asryx_tests PRIVATE ASRYX_TESTING)
-target_link_libraries(asryx_tests PRIVATE whisper)
+target_link_libraries(asryx_tests PRIVATE whisper libassert::assert)
 
 asryx_enable_warnings(asryx_tests)
 asryx_enable_hardening(asryx_tests)
