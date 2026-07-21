@@ -21,6 +21,7 @@ jobs:
         with:
           path: |
             ~/.local/opt/whisper.cpp
+            ~/.local/opt/libassert
             ~/.local/share/asryx
             ~/.cache/ccache
           key: ${{ runner.os }}-install-${{ hashFiles('package/install') }}-${{ github.job }}-${{ github.run_id }}-${{ github.run_attempt }}
@@ -36,7 +37,7 @@ jobs:
           CCACHE_DIR: /home/runner/.cache/ccache
           CCACHE_COMPRESS: "true"
           CCACHE_MAXSIZE: 1G
-        run: bash ./package/install
+        run: bash ./package/install --dev
 
       - name: test
         run: just t
