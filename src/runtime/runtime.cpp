@@ -18,14 +18,6 @@ namespace runtime {
 
 namespace {
 
-#ifdef ASRYX_TESTING
-int& _toggle_entries()
-{
-  static int entries = 0;
-  return entries;
-}
-#endif
-
 void _handle_toggle_error(const std::filesystem::path& runtime_dir, const std::exception& error)
 {
   std::cerr << "error: " << error.what() << "\n";
@@ -126,10 +118,6 @@ void cancel()
 
 void toggle()
 {
-#ifdef ASRYX_TESTING
-  ++_toggle_entries();
-#endif
-
   const auto runtime_dir = platform::get_runtime_directory();
   if (!session::acquire_lock(runtime_dir)) {
     return;
@@ -151,21 +139,5 @@ void toggle()
     throw;
   }
 }
-
-#ifdef ASRYX_TESTING
-namespace testing {
-
-void reset_toggle_entry_count()
-{
-  _toggle_entries() = 0;
-}
-
-int toggle_entry_count()
-{
-  return _toggle_entries();
-}
-
-} // namespace testing
-#endif
 
 } // namespace runtime
