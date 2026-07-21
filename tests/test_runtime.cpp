@@ -15,48 +15,42 @@ using namespace runtime_test;
 
 namespace {
 
-class RuntimeFixture
+void _reset_runtime()
 {
-public:
-  RuntimeFixture()
-  {
-    write_fake_model();
-    reset_config();
-    clean_runtime();
-    install_default_hooks();
-  }
+  write_fake_model();
+  reset_config();
+  clean_runtime();
+}
 
-  void reset_with_pipe(const std::string& pipe_to)
-  {
-    clean_runtime();
-    reset_config(pipe_to);
-    install_default_hooks();
-  }
+void _reset_runtime_with_pipe(const std::string& pipe_to)
+{
+  clean_runtime();
+  reset_config(pipe_to);
+}
 
-  void write_recording()
-  {
-    write_recording_payload();
-  }
+void _write_recording()
+{
+  write_recording_payload();
+}
 
-  void write_recording_for(pid_t pid)
-  {
-    write_pid_file(pid);
-    write_text(runtime_file(std::string(constants::runtime::recorder_wav_file)), "fake wav");
-    write_text(runtime_file(std::string(constants::runtime::state_file)),
-               std::string(constants::runtime::recording_state) + "\n");
-  }
+void _write_recording_for(pid_t pid)
+{
+  write_pid_file(pid);
+  write_text(runtime_file(std::string(constants::runtime::recorder_wav_file)), "fake wav");
+  write_text(runtime_file(std::string(constants::runtime::state_file)),
+             std::string(constants::runtime::recording_state) + "\n");
+}
 
-  void write_transcribing_lock()
-  {
-    write_text(runtime_file(std::string(constants::runtime::state_file)),
-               std::string(constants::runtime::transcribing_state) + "\n");
-    write_lock_pid(getpid());
-  }
-};
+void _write_transcribing_lock()
+{
+  write_text(runtime_file(std::string(constants::runtime::state_file)),
+             std::string(constants::runtime::transcribing_state) + "\n");
+  write_lock_pid(getpid());
+}
 
 void test_normal_toggle_flow()
 {
-  RuntimeFixture fixture;
+  _reset_runtime();
 
   ASSERT(runtime::get_status() == std::string(constants::runtime::idle_state));
 
@@ -85,8 +79,8 @@ void test_normal_toggle_flow()
 
 void test_recovers_dead_recording_pid()
 {
-  RuntimeFixture fixture;
-  fixture.write_recording_for(dead_pid());
+  _reset_runtime();
+  _write_recording_for(dead_pid());
   write_text(runtime_file(std::string(constants::runtime::recorder_error_file)), "stale err");
 
   runtime::toggle();
@@ -100,7 +94,7 @@ void test_recovers_dead_recording_pid()
 
 void test_lock_state()
 {
-  RuntimeFixture fixture;
+  _reset_runtime();
 
   write_lock_pid(getpid());
   runtime::toggle();
@@ -117,7 +111,7 @@ void test_lock_state()
 
 void test_status_from_runtime_state()
 {
-  RuntimeFixture fixture;
+  _reset_runtime();
 
   write_text(runtime_file(std::string(constants::runtime::state_file)),
              std::string(constants::runtime::recording_state) + "\n");
@@ -135,9 +129,9 @@ void test_status_from_runtime_state()
 
 void test_pipe_delivery()
 {
-  RuntimeFixture fixture;
-  fixture.reset_with_pipe("cat > " + pipe_output_path().string());
-  fixture.write_recording();
+  _reset_runtime();
+  _reset_runtime_with_pipe("cat > " + pipe_output_path().string());
+  _write_recording();
 
   runtime::toggle();
 
@@ -149,10 +143,10 @@ void test_pipe_delivery()
 
 void test_empty_transcription_does_not_route()
 {
-  RuntimeFixture fixture;
-  fixture.reset_with_pipe("cat > " + pipe_output_path().string());
+  _reset_runtime();
+  _reset_runtime_with_pipe("cat > " + pipe_output_path().string());
   state().transcript = " \n\t";
-  fixture.write_recording();
+  _write_recording();
 
   runtime::toggle();
 
@@ -163,9 +157,9 @@ void test_empty_transcription_does_not_route()
 
 void test_pipe_failure_keeps_clipboard_copy()
 {
-  RuntimeFixture fixture;
-  fixture.reset_with_pipe("sh -c 'cat > " + pipe_fail_marker_path().string() + "; exit 7'");
-  fixture.write_recording();
+  _reset_runtime();
+  _reset_runtime_with_pipe("sh -c 'cat > " + pipe_fail_marker_path().string() + "; exit 7'");
+  _write_recording();
 
   runtime::toggle();
 
@@ -179,7 +173,7 @@ void test_pipe_failure_keeps_clipboard_copy()
 
 void test_cancel_recording()
 {
-  RuntimeFixture fixture;
+  _reset_runtime();
 
   runtime::cancel();
   ASSERT(state().stop_calls == 0);
@@ -188,7 +182,7 @@ void test_cancel_recording()
   ASSERT(!runtime_payload_exists());
   ASSERT(!std::filesystem::exists(lock_dir()));
 
-  fixture.write_recording();
+  _write_recording();
   runtime::cancel();
   runtime::cancel();
 
@@ -202,8 +196,8 @@ void test_cancel_recording()
 
 void test_cancel_transcribing()
 {
-  RuntimeFixture fixture;
-  fixture.write_transcribing_lock();
+  _reset_runtime();
+  _write_transcribing_lock();
 
   runtime::cancel();
   runtime::cancel();
