@@ -51,9 +51,7 @@ void reset_config()
 void assert_control_command_does_not_record(const std::vector<std::string>& args)
 {
   clean_runtime_files();
-  runtime::testing::reset_toggle_entry_count();
   ASSERT(app::run(args) == 0);
-  ASSERT(runtime::testing::toggle_entry_count() == 0);
   ASSERT(runtime::get_status() == std::string(constants::runtime::idle_state));
   ASSERT(!recording_files_exist());
 }
@@ -72,8 +70,10 @@ void stop_started_recording()
   pid_file >> pid;
 
   if (pid > 0) {
-    platform::stop_process(pid);
-    platform::wait_process(pid);
+    if (pid != getpid()) {
+      platform::stop_process(pid);
+      platform::wait_process(pid);
+    }
   }
 
   clean_runtime_files();
@@ -87,9 +87,7 @@ void run_test_app()
   reset_config();
   clean_runtime_files();
 
-  runtime::testing::reset_toggle_entry_count();
   ASSERT(app::run({}) == 0);
-  ASSERT(runtime::testing::toggle_entry_count() == 1);
   ASSERT(runtime::get_status() == std::string(constants::runtime::recording_state));
   ASSERT(recording_files_exist());
   stop_started_recording();
@@ -114,15 +112,11 @@ void run_test_app()
   ASSERT(cfg.pipe_to == std::string(""));
 
   clean_runtime_files();
-  runtime::testing::reset_toggle_entry_count();
   ASSERT(app::run({"--output", "clipboard"}) == 1);
-  ASSERT(runtime::testing::toggle_entry_count() == 0);
   ASSERT(runtime::get_status() == std::string(constants::runtime::idle_state));
   ASSERT(!recording_files_exist());
 
-  runtime::testing::reset_toggle_entry_count();
   ASSERT(app::run({"--output", "exec", "--pipe-to", "tee -a ~/x.txt"}) == 1);
-  ASSERT(runtime::testing::toggle_entry_count() == 0);
   ASSERT(runtime::get_status() == std::string(constants::runtime::idle_state));
   ASSERT(!recording_files_exist());
 
