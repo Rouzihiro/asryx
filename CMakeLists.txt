@@ -13,6 +13,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+option(ASRYX_BUILD_TESTS "Build Asryx tests" OFF)
+
 set(ASRYX_WHISPER_SOURCE_DIR "$ENV{HOME}/.local/opt/whisper.cpp")
 
 if(NOT EXISTS "${ASRYX_WHISPER_SOURCE_DIR}/CMakeLists.txt")
@@ -46,5 +48,7 @@ asryx_enable_warnings(asryx)
 asryx_enable_hardening(asryx)
 asryx_enable_sanitizers(asryx)
 
-enable_testing()
-add_subdirectory(tests)
+if(ASRYX_BUILD_TESTS)
+  enable_testing()
+  add_subdirectory(tests)
+endif()

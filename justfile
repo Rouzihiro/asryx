@@ -19,15 +19,18 @@ tidy_sources := "find src tests -type f \\( -name '*.cpp' -o -name '*.hpp' \\) -
 	{{cpp_sources}} | xargs -0 -r clang-format --dry-run --Werror
 
 @test:
-	just build
-	ctest --preset release
+	cmake --fresh --preset test
+	cmake --build --preset test --target asryx_tests
+	ctest --preset test
 
 @lint:
 	python3 lint/check-line-limits.py
 	python3 lint/check-module-boundaries.py
 	python3 lint/check-owned-paths.py
 	cmake --fresh --preset release
-	{{tidy_sources}} | xargs -0 -r clang-tidy -p build/release
+	cmake --fresh --preset test
+	find src -type f \( -name '*.cpp' -o -name '*.hpp' \) -print0 | xargs -0 -r clang-tidy --config-file=.clang-tidy -p build/release
+	find tests -type f \( -name '*.cpp' -o -name '*.hpp' \) -print0 | xargs -0 -r clang-tidy --config-file=.clang-tidy -p build/test
 	cppcheck --enable=all --error-exitcode=1 --inline-suppr --suppress=checkersReport --suppress=missingInclude --suppress=normalCheckLevelMaxBranches --suppressions-list=cppcheck.suppressions --std=c++20 -I src -I tests -I . src tests
 
 @shellcheck:
@@ -39,10 +42,10 @@ tidy_sources := "find src tests -type f \\( -name '*.cpp' -o -name '*.hpp' \\) -
 
 @sanitizers:
 	cmake --fresh --preset asan
-	cmake --build --preset asan
+	cmake --build --preset asan --target asryx_tests
 	ctest --preset asan
 	cmake --fresh --preset ubsan
-	cmake --build --preset ubsan
+	cmake --build --preset ubsan --target asryx_tests
 	ctest --preset ubsan
 
 @clean:

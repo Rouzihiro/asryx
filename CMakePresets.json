@@ -20,7 +20,17 @@
       "inherits": "base",
       "displayName": "Release",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
+        "CMAKE_BUILD_TYPE": "Release",
+        "ASRYX_BUILD_TESTS": "OFF"
+      }
+    },
+    {
+      "name": "test",
+      "inherits": "base",
+      "displayName": "Test",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ASRYX_BUILD_TESTS": "ON"
       }
     },
     {
@@ -29,6 +39,7 @@
       "displayName": "AddressSanitizer",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
+        "ASRYX_BUILD_TESTS": "ON",
         "ASRYX_SANITIZER": "address"
       }
     },
@@ -38,19 +49,21 @@
       "displayName": "UndefinedBehaviorSanitizer",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
+        "ASRYX_BUILD_TESTS": "ON",
         "ASRYX_SANITIZER": "undefined"
       }
     }
   ],
   "buildPresets": [
     { "name": "release", "configurePreset": "release" },
+    { "name": "test", "configurePreset": "test" },
     { "name": "asan", "configurePreset": "asan" },
     { "name": "ubsan", "configurePreset": "ubsan" }
   ],
   "testPresets": [
     {
-      "name": "release",
-      "configurePreset": "release",
+      "name": "test",
+      "configurePreset": "test",
       "output": { "outputOnFailure": true }
     },
     {
