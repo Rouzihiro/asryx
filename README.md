@@ -196,13 +196,29 @@ After a completed transcription, runtime files are completely removed. The trans
 
 ```bash
 git clone https://github.com/rccyx/asryx
-cd asryx && bash ./package/install
+cd asryx
+bash ./package/install
 ```
 
-The installer validates the user environment, checks required tools, clones the pinned native inference source, builds the binary locally, installs the executable, writes the version pin, writes the default config, installs the VAD model, installs the default transcription model, selects it, and prints a PATH note when `~/.local/bin` is unavailable from the current shell.
+> ![TIP]
+> If you've changed your mind, see the [uninstaller](#uninstallation).
+
+### CPU
+
+The command above works on any machine and it defaults to the CPU.
+
+If you have a potato it will work on it.
+
+### GPU
+
+Now, the GPU is actually way faster so you might want to use it. See [GPU builds](./docs/gpu.md).
 
 > [!NOTE]
 > `main` is branch protected and force pushes are disabled. Anything merged into `main` builds and installs. if you want a versioned snapshot instead, see [releases](https://github.com/rccyx/asryx/releases).
+
+### What it does
+
+The installer validates the user environment, checks required tools, clones the pinned native inference source, builds the binary locally, installs the executable, writes the version pin, writes the default config, installs the VAD model, installs the default transcription model, selects it, and prints a PATH note when `~/.local/bin` is unavailable from the current shell.
 
 Installed paths:
 
@@ -266,6 +282,8 @@ cmake
 ninja
 g++ or clang++
 ```
+
+The default CPU build needs no CUDA or Vulkan packages. GPU builds need extra system packages; see [GPU builds](./docs/gpu.md).
 
 Runtime depends on your machine. For audio, check what you have:
 
